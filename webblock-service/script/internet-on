@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CHAIN="NETSENTINEL_TEMP"
+CHAIN6="NETSENTINEL_TEMP6"
+IPT=$(command -v iptables || true)
+IPT6=$(command -v ip6tables || true)
+: "${IPT:=iptables}"
+: "${IPT6:=ip6tables}"
+
+# Remove hook from OUTPUT and delete chain (IPv4)
+$IPT -D OUTPUT -j $CHAIN 2>/dev/null || true
+$IPT -F $CHAIN 2>/dev/null || true
+$IPT -X $CHAIN 2>/dev/null || true
+
+# IPv6 (sadece eğer mevcut zincir varsa)
+$IPT6 -D OUTPUT -j $CHAIN6 2>/dev/null || true
+$IPT6 -F $CHAIN6 2>/dev/null || true
+$IPT6 -X $CHAIN6 2>/dev/null || true
+
+echo "NETSENTINEL_TEMP removed (v4+v6)."
+
+# opsiyonel: ipset içini temizle / kaldır
+# sudo ipset flush blocklist
+# sudo ipset flush blocklist6
+# sudo ipset destroy blocklist
+# sudo ipset destroy blocklist6
+

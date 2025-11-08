@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/webblock.svg</file>
+        <file>icons/add.svg</file>
+    </qresource>
+</RCC>

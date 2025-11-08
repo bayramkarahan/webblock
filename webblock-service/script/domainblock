@@ -1,0 +1,57 @@
+#!/bin/bash
+
+JSON_FILE="/usr/share/webblock/data/webblock.json"
+
+# Dosya yoksa oluştur
+if [ ! -f "$JSON_FILE" ]; then
+    echo "[]" > "$JSON_FILE"
+fi
+
+# JSON'u oku
+json=$(cat "$JSON_FILE")
+
+# Domain ekle
+domain_add() {
+    local domain="$1"
+    # lowercase ve trim
+    domain=$(echo "$domain" | tr '[:upper:]' '[:lower:]' | xargs)
+
+    # Eğer domain zaten varsa selectedWord=true yap
+    exists=$(echo "$json" | jq --arg d "$domain" '[.[] | select(.word==$d)] | length')
+    if [ "$exists" -gt 0 ]; then
+        json=$(echo "$json" | jq --arg d "$domain" 'map(if .word==$d then .selectedWord=true else . end)')
+    else
+        # Yeni index
+        maxidx=$(echo "$json" | jq '[.[] | .index|tonumber] | max // 0')
+        idx=$((maxidx + 1))
+        json=$(echo "$json" | jq --argjson i "$idx" --arg d "$domain" '. += [{"index":($i|tostring),"selectedWord":true,"word":$d}]')
+    fi
+}
+
+# Domain sil
+domain_remove() {
+    local domain="$1"
+    domain=$(echo "$domain" | tr '[:upper:]' '[:lower:]' | xargs)
+    # Tamamen kaldır
+    json=$(echo "$json" | jq --arg d "$domain" 'map(select(.word != $d))')
+}
+
+# Ana
+case "$1" in
+    add)
+        domain_add "$2"
+        ;;
+    remove)
+        domain_remove "$2"
+        ;;
+    *)
+        echo "Usage: $0 {add|remove} <domain>"
+        exit 1
+        ;;
+esac
+
+# Kaydet
+echo "$json" | jq . > "$JSON_FILE"
+echo "Updated $JSON_FILE"
+
+systemctl restart webblock.service
