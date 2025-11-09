@@ -1,0 +1,12 @@
+Package: webblock-dbgsym
+Source: webblock
+Version: 1.0.0
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Bayram KARAHAN <bayramk@gmail.com>
+Installed-Size: 74
+Depends: webblock (= 1.0.0)
+Section: debug
+Priority: optional
+Description: debug symbols for webblock
+Build-Ids: 35596ccef08e348f0f041a5f9f36f3d6ad015677 38021e9ac8ef9bafd7b3ea67e3b83fe8553cc971 e59699c56487d3b0d1eb4b62a4e7fcc75308ea65

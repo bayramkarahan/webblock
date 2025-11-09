@@ -25,8 +25,7 @@
 
 #include<QFile>
 #include<QFileDialog>
-#include<QRegularExpression>
-#include<filecrud.h>
+
 #include<QTimeEdit>
 #include<QDate>
 #include<QTimer>

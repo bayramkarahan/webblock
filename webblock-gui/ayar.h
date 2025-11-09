@@ -24,119 +24,127 @@
 #include<QMessageBox>
 #include<QApplication>
 #include<QDesktopWidget>
+#include <functional>
 
-QWidget * MainWindow::ayar()
+QWidget* MainWindow::ayar()
 {
-    // qDebug()<<"ayar click";
-    QDialog * d = new QDialog();
+    QDialog *d = new QDialog();
     d->setWindowTitle(tr("Web Filtresi"));
     d->setFixedSize(QSize(boy*24,boy*18));
-   ///d->setStyleSheet("font-size:"+QString::number(font.toInt()-2)+"px;");
-    auto appIcon = QIcon(":/icons/webblock.svg");
-    d->setWindowIcon(appIcon);
-    QRect screenGeometry = QApplication::desktop()->screenGeometry();
-    int x = (screenGeometry.width() - d->width())/2;
-    int y = (screenGeometry.height() - d->height()) / 2;
-    d->move(x, y);
-    /***********************************************************************/
-    QTableWidget *twlh=new QTableWidget;
+    d->setWindowIcon(QIcon(":/icons/webblock.svg"));
 
+    QTableWidget *twlh = new QTableWidget(d);
     twlh->setFixedSize(QSize(boy*23,boy*13));
     twlh->setColumnCount(5);
-    //twlh->setRowCount(0);
     twlh->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Seç")));
     twlh->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Index")));
-    twlh->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Engelenen Kelime")));
+    twlh->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Engellenen Kelime")));
     twlh->setHorizontalHeaderItem(3, new QTableWidgetItem(""));
     twlh->setHorizontalHeaderItem(4, new QTableWidgetItem(""));
 
     twlh->setSelectionBehavior(QAbstractItemView::SelectRows);
     twlh->setSelectionMode(QAbstractItemView::SingleSelection);
-    //connect(tw, &QTableWidget::cellClicked, this, cellClicked());
-    twlh->setRowCount(0);
+
     twlh->setColumnWidth(0, boy*1);
     twlh->setColumnWidth(1, boy*1);
-    twlh->setColumnWidth(2,boy*13);
-    twlh->setColumnWidth(3,boy*3);
-    twlh->setColumnWidth(4,boy*2);
+    twlh->setColumnWidth(2, boy*13);
+    twlh->setColumnWidth(3, boy*3);
+    twlh->setColumnWidth(4, boy*2);
 
-    DatabaseHelper *db=new DatabaseHelper(localDir+"data/webblock.json");
-    QJsonArray dizi=db->Oku();
-    int sr=0;
+    DatabaseHelper *db = new DatabaseHelper(localDir + "data/webblock.json");
 
-    for (const QJsonValue &item : dizi) {
-        QJsonObject veri=item.toObject();
+    // Tabloyu doldur
+    auto fillTable = [twlh, db, this](void) {
+        twlh->setRowCount(0);
+        QJsonArray dizi = db->Oku();
+        int sr = 0;
+        for (const QJsonValue &item : dizi)
+        {
+            QJsonObject veri = item.toObject();
+            twlh->insertRow(sr);
 
-        twlh->setRowCount(twlh->rowCount()+1);
-        QCheckBox *mCheck = new QCheckBox();
-        mCheck->setFixedWidth(boy*5);
-        mCheck->setChecked(false);
-        QLineEdit * index = new QLineEdit();
-        QLineEdit * word = new QLineEdit();
-        QToolButton *saveButton= new QToolButton;
-        saveButton->setText(tr("Kaydet"));
-        saveButton->setFixedWidth(boy*3);
-        connect(saveButton, &QPushButton::clicked, [=]() {
-            //qDebug()<<"Değişiklikler Kaydedildi.."<<insertButton->toolTip();
-            int numRows = twlh->rowCount();
-            for ( int i = 0 ; i < numRows ; i++)
-            {
-                QCheckBox* mBox = static_cast<QCheckBox*> (twlh->cellWidget(i,0));
-                QLineEdit * index = static_cast<QLineEdit*> (twlh->cellWidget(i,1));
-                QLineEdit * word = static_cast<QLineEdit*> (twlh->cellWidget(i,2));
-                if (index->text()==saveButton->toolTip())
-                {
-                    QJsonArray dizi=db->Ara("index",saveButton->toolTip());
-                    if(dizi.count()>0)
-                    {
-                        qDebug()<<"Kelime Değiştirilecek."<<saveButton->toolTip();
-                        QJsonObject veri;
-                        if (mBox->isChecked()) veri["selectedWord"] =true;
-                        else veri["selectedWord"] =false;
-                        veri["index"] = index->text();
-                        veri["word"] = word->text();
-                        //qDebug()<<"kelime kayıt"<<veri;
-                        db->Sil("index",index->text());
-                        db->Ekle(veri);
+            QCheckBox *mCheck = new QCheckBox();
+            mCheck->setChecked(veri.value("selectedWord").toBool());
+
+            QLineEdit *index = new QLineEdit(veri.value("index").toString());
+            index->setReadOnly(true);
+
+            QLineEdit *word = new QLineEdit(veri.value("word").toString());
+
+            QToolButton *saveButton = new QToolButton();
+            saveButton->setText(tr("Kaydet"));
+
+            QToolButton *removeButton = new QToolButton();
+            removeButton->setText(tr("Sil"));
+
+            // Save lambda (sadece bu satırı güncelle)
+            connect(saveButton, &QToolButton::clicked, this, [this,twlh, db, sr]() {
+                QToolButton* btn = qobject_cast<QToolButton*>(sender());
+                if (!btn) return;
+
+                // Satır numarasını bul
+                int row = -1;
+                for (int i = 0; i < twlh->rowCount(); ++i)
+                    if (twlh->cellWidget(i, 3) == btn) {  // 3: saveButton sütunu
+                        row = i;
+                        break;
                     }
-                }
-            }
-            d->close();
-            ///webBlockWidget();
-        });
-        QToolButton *removeButton= new QToolButton;
-        removeButton->setText(tr("Sil"));
-        removeButton->setFixedWidth(boy*2);
-        connect(removeButton, &QPushButton::clicked, [=]() {
-            //qDebug()<<"Profil Silindi.."<<networkRemoveButton->toolTip();
-            QJsonArray dizi=db->Ara("networkIndex",removeButton->toolTip());
-            qDebug()<<"Web Kelime Silinecek."<<removeButton->toolTip();
-            db->Sil("index",index->text());
-            d->close();
-            ///webBlockWidget();
-        });
+                if (row < 0) return;
 
+                QLineEdit* idxWidget = qobject_cast<QLineEdit*>(twlh->cellWidget(row, 1));
+                QLineEdit* wordWidget = qobject_cast<QLineEdit*>(twlh->cellWidget(row, 2));
+                QCheckBox* chk = qobject_cast<QCheckBox*>(twlh->cellWidget(row, 0));
 
+                if (!idxWidget || !wordWidget || !chk) return;
 
-        index->setText(veri.value("index").toString());
-        index->setReadOnly(true);
-        word->setText(veri.value("word").toString());
-        saveButton->setToolTip(index->text());
-        twlh->setCellWidget(sr,0,mCheck);
-        twlh->setCellWidget(sr,1,index);
-        twlh->setCellWidget(sr,2,word);
-        twlh->setCellWidget(sr,3,saveButton);
-        twlh->setCellWidget(sr,4,removeButton);
+                // DB güncelle
+                db->Sil("index", idxWidget->text());
+                QJsonObject yeni;
+                yeni["index"] = idxWidget->text();
+                yeni["word"] = wordWidget->text();
+                yeni["selectedWord"] = chk->isChecked();
+                db->Ekle(yeni);
+            });
 
-        //qDebug()<<"Kayıtlı Host.";
-        if(veri.value("selectedWord").toBool())
-            mCheck->setChecked(true);
-        else
-            mCheck->setChecked(false);
-        sr++;
-    }
+            // Remove lambda (sadece bu satırı kaldır)
+            connect(removeButton, &QToolButton::clicked, this, [this, twlh, db, sr]() {
+                QToolButton* btn = qobject_cast<QToolButton*>(sender());
+                if (!btn) return;
 
-    /********************************************************************/
+                // Satır numarasını bul
+                int row = -1;
+                for (int i = 0; i < twlh->rowCount(); ++i)
+                    if (twlh->cellWidget(i, 4) == btn) {  // 4: removeButton sütunu
+                        row = i;
+                        break;
+                    }
+
+                if (row < 0) return;
+
+                // Şimdi row ile DB ve widgetlar güncellenebilir
+                QLineEdit* idxWidget = qobject_cast<QLineEdit*>(twlh->cellWidget(row, 1));
+                if (!idxWidget) return;
+
+                // DB’den sil
+                db->Sil("index", idxWidget->text());
+
+                // Satırı kaldır
+                twlh->removeRow(row);
+            });
+
+            twlh->setCellWidget(sr, 0, mCheck);
+            twlh->setCellWidget(sr, 1, index);
+            twlh->setCellWidget(sr, 2, word);
+            twlh->setCellWidget(sr, 3, saveButton);
+            twlh->setCellWidget(sr, 4, removeButton);
+
+            sr++;
+        }
+    };
+
+    fillTable(); // tabloyu başta doldur
+
+    // Yeni kelime ekleme
     QToolButton *insertWordButton= new QToolButton;
     insertWordButton->setFixedSize(QSize(boy*5,boy*4));
     insertWordButton->setIconSize(QSize(boy*5,boy*2));
@@ -144,22 +152,15 @@ QWidget * MainWindow::ayar()
     insertWordButton->setIcon(QIcon(":/icons/add.svg"));
     insertWordButton->setAutoRaise(true);
     insertWordButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    // newNetworkButton->setFont(f2);
     insertWordButton->setText(tr("Yeni Kelime Ekle"));
-
-    connect(insertWordButton, &QPushButton::clicked, [=]() {
-        DatabaseHelper *db=new DatabaseHelper(localDir+"data/webblock.json");
+    connect(insertWordButton, &QToolButton::clicked, this, [twlh, db, fillTable]() {
         QJsonObject veri;
-        veri["index"] =QString::number(db->getIndex("index"));
-        if(db->Oku().size()==0) veri["selectedWord"] =true;
-        else veri["selectedWord"] =false;
+        veri["index"] = QString::number(db->getIndex("index"));
         veri["word"] = "sample";
+        veri["selectedWord"] = db->Oku().isEmpty();
         db->Ekle(veri);
-        d->close();
-        ///webBlockWidget();
+        fillTable(); // yeni satır eklendiğinde tabloyu yeniden doldur
     });
-
-    /*********************************************************************/
 
     QVBoxLayout * vbox = new QVBoxLayout();
     vbox->addWidget(twlh);
@@ -170,9 +171,8 @@ QWidget * MainWindow::ayar()
     vbox->addLayout(hbox);
 
     d->setLayout(vbox);
-    //d->exec();
-    return d;
 
+    return d;
 }
 
 #endif // AYAR_H

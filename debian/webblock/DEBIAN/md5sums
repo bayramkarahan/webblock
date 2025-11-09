@@ -1,0 +1,13 @@
+80e2963ae8209042427a36a5ab77c6c2  lib/systemd/system/webblock.service
+bb044df4c0cffc84e4d042c16f97df07  usr/bin/webblock-gui
+165d5dd3e97da57394ca1ba8228e2cbd  usr/bin/webblock-service
+0a18d636645f7cf9e368f7886a652741  usr/bin/webblock-tray
+27e111b98afec0bbc1695cc117ed2551  usr/share/applications/webblock-gui.desktop
+38dc86031d40ddf97561c372e68c82b9  usr/share/doc/webblock/changelog.gz
+64b4a1d85bdd90096d562c6cfe56bdc4  usr/share/doc/webblock/copyright
+6aa28c6a26b20ae25d1b63fe38f482bb  usr/share/icons/webblock.svg
+3d20f8b2d6884d4dff9bac1ccd207062  usr/share/webblock/data/webblock.json
+e0b87eb8eb695e7fc3a511ccf6bed69d  usr/share/webblock/script/domainblock
+cfbb8e607d5c7411fec337b4f4283539  usr/share/webblock/script/internet-off
+2f73185a3c29e2a6f3472451109eca2d  usr/share/webblock/script/internet-on
+1cb1bfa87a2514e63cb0637a9a5c8d9e  usr/share/webblock/script/webblock-clean
