@@ -26,7 +26,7 @@
 #define HAKKINDA_H
 QWidget *MainWindow::hakkinda()
 {
-
+ QString yil=QString::number( QDateTime::currentDateTime().date().year());
     QWidget *hakkindaPage=new QWidget();
     /*******************************************************/
     hakkindaPage->setFixedWidth(500);
@@ -37,7 +37,7 @@ QWidget *MainWindow::hakkinda()
     hak->setText("\nBu Uygulama Belirlenen Web Filtresi Uygulamadır."
                  "\n"
 
-                   "\n   Copyright (C) 2023 by Bayram KARAHAN                                     "
+                   "\n   Copyright (C) "+yil+" by Bayram KARAHAN                                     "
                  "\n   github.com/bayramkarahan/webblock                                            "
                   "\n\n                                                                          "
                   "\n   This program is free software; you can redistribute it and/or modify    "

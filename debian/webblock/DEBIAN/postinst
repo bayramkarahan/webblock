@@ -1,8 +1,0 @@
-#!/bin/sh
-
-mkdir /usr/share/webblock
-chmod 755 /usr/share/webblock
-chmod 755 /usr/share/webblock/*
-systemctl daemon-reload || true
-systemctl enable webblock.service || true
-systemctl start webblock.service || true
