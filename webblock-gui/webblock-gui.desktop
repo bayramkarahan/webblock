@@ -1,14 +1,14 @@
 [Desktop Entry]
 Version=1.0
-Name=zamanligorev Application
-Name[tr]=zamanligorev Uygulaması
+Name=webblock Application
+Name[tr]=webblock Uygulaması
 Type=Application
-Comment=Simple Qt based zamanligorev Application
-Comment[tr]=Basit Qt tabanlı zamanligorev Uygulaması
+Comment=Simple Qt based webblock Application
+Comment[tr]=Basit Qt tabanlı webblock Uygulaması
 Terminal=false
-Exec=sh -c "pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY zamanligorevgui"
-Icon=/usr/share/icons/zamanligorev.svg
+Exec=sh -c "pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY /usr/bin/webblock-gui"
+Icon=/usr/share/icons/webblock.svg
 Categories=Qt;Utility;
-Keywords=zaman;görev;task;
-GenericName=ZamanliGorev
+Keywords=web;filter;block;webblock;
+GenericName=webblock
 Name[tr_TR]=webblock-gui.desktop
