@@ -50,7 +50,7 @@ QWidget* MainWindow::ayar()
     twlh->setColumnWidth(2, boy*13);
     twlh->setColumnWidth(3, boy*3);
     twlh->setColumnWidth(4, boy*2);
-
+    twlh->setColumnHidden(1, true);
     DatabaseHelper *db = new DatabaseHelper(localDir + "data/webblock.json");
 
     // Tabloyu doldur

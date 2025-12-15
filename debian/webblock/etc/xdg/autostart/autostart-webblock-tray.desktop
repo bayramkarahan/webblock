@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Name=webblock Application
+Name[tr]=webblock Uygulaması
+Type=Application
+Comment=Simple Qt based webblock Application
+Comment[tr]=Basit Qt tabanlı webblock Uygulaması
+Terminal=false
+Exec=/usr/bin/webblock-tray
+Icon=/usr/share/icons/webblock.svg
+Categories=Qt;Utility;
+Keywords=webblock;web;filter;block;
+GenericName=autostartwebblocktray
+Name[tr_TR]=autostart-webblock-tray.desktop

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# only-webblock
+# Geçici tek domain filtreleme - NetSentinel'e dokunmaz
+
+IPT="/usr/sbin/iptables-legacy"
+IPT6="/usr/sbin/ip6tables-legacy"
+CHAIN="temp_web_filter"
+STATE_FILE="/tmp/only_webblock_state"
+NETSENTINEL_SERVICE="webblock.service"
+
+start_filter() {
+    local domain="$1"
+
+    # Eğer zaten aktifse uyar
+    if [ -f "$STATE_FILE" ]; then
+        current=$(cat "$STATE_FILE")
+        if [ "$current" == "$domain" ]; then
+            echo "⚠️ Filtre zaten aktif: sadece $domain erişilebilir."
+            return 0
+        else
+            echo "🔄 Farklı domain aktif ($current). Önce stop yapılıyor..."
+            stop_filter
+        fi
+    fi
+
+    echo "🛑 $NETSENTINEL_SERVICE servisi durduruluyor..."
+    systemctl stop "$NETSENTINEL_SERVICE" 2>/dev/null || true
+
+    echo "🌐 $domain IP adresi çözülüyor..."
+    ip4=$(getent ahostsv4 "$domain" | awk '{print $1; exit}')
+    ip6=$(getent ahostsv6 "$domain" | awk '{print $1; exit}')
+
+    if [ -z "$ip4" ] && [ -z "$ip6" ]; then
+        echo "❌ IP adresi çözülemedi: $domain"
+        exit 1
+    fi
+
+    echo "🧱 $CHAIN zinciri oluşturuluyor..."
+    # Zincir zaten varsa önce temizle
+    $IPT -F $CHAIN 2>/dev/null || true
+    $IPT6 -F $CHAIN 2>/dev/null || true
+
+    $IPT -N $CHAIN 2>/dev/null || true
+    $IPT6 -N $CHAIN 2>/dev/null || true
+
+    # IPv4 izin + engelleme
+    if [ -n "$ip4" ]; then
+        $IPT -A $CHAIN -d "$ip4" -j ACCEPT
+    fi
+    $IPT -A $CHAIN -j DROP
+
+    # IPv6 izin + engelleme
+    if [ -n "$ip6" ]; then
+        $IPT6 -A $CHAIN -d "$ip6" -j ACCEPT
+    fi
+    $IPT6 -A $CHAIN -j DROP
+
+    # OUTPUT’a ekle (zaten ekli değilse)
+    if ! $IPT -C OUTPUT -j $CHAIN 2>/dev/null; then
+        $IPT -I OUTPUT -j $CHAIN
+    fi
+    if ! $IPT6 -C OUTPUT -j $CHAIN 2>/dev/null; then
+        $IPT6 -I OUTPUT -j $CHAIN
+    fi
+
+    echo "$domain" > "$STATE_FILE"
+    echo "✅ Filtre etkin: sadece $domain erişilebilir."
+}
+
+stop_filter() {
+    echo "🔄 Filtre kaldırılıyor..."
+    $IPT -D OUTPUT -j $CHAIN 2>/dev/null || true
+    $IPT6 -D OUTPUT -j $CHAIN 2>/dev/null || true
+    $IPT -F $CHAIN 2>/dev/null || true
+    $IPT6 -F $CHAIN 2>/dev/null || true
+    $IPT -X $CHAIN 2>/dev/null || true
+    $IPT6 -X $CHAIN 2>/dev/null || true
+    rm -f "$STATE_FILE"
+    echo "✅ Filtre devre dışı bırakıldı."
+
+    echo "🚀 $NETSENTINEL_SERVICE yeniden başlatılıyor..."
+    systemctl start "$NETSENTINEL_SERVICE" 2>/dev/null || true
+}
+
+status_filter() {
+    if [ -f "$STATE_FILE" ]; then
+        domain=$(cat "$STATE_FILE")
+        echo "🌐 Filtre aktif: sadece $domain erişilebilir."
+    else
+        echo "⚪ Filtre devre dışı."
+    fi
+}
+
+case "$1" in
+    start)
+        if [ -z "$2" ]; then
+            echo "Kullanım: $0 start <domain>"
+            exit 1
+        fi
+        start_filter "$2"
+        ;;
+    stop)
+        stop_filter
+        ;;
+    status)
+        status_filter
+        ;;
+    *)
+        echo "Kullanım: $0 {start|stop|status} [domain]"
+        exit 1
+        ;;
+esac
+
