@@ -11,4 +11,4 @@ Icon=/usr/share/icons/webblock.svg
 Categories=Qt;Utility;
 Keywords=web;filter;block;webblock;
 GenericName=webblock
-Name[tr_TR]=webblock-gui.desktop
+Name[tr_TR]=webblock
